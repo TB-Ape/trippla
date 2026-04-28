@@ -17,6 +17,7 @@ import { TripNav } from "@/components/TripNav";
 import { PageTransition } from "@/components/PageTransition";
 import { WeatherBadge } from "@/components/ui/weather-badge";
 import type { WeatherDay } from "@/lib/weather";
+import { useSidebarState } from "@/hooks/useSidebarState";
 import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
 import type { LucideIcon } from "lucide-react";
@@ -150,6 +151,7 @@ export default function TripDetailPage() {
   const locale = useLocale();
   const params = useParams();
   const tripId = params.tripId as string;
+  const sidebar = useSidebarState();
 
   const [trip, setTrip] = useState<Trip | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -556,11 +558,11 @@ export default function TripDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <AppHeader backHref="/trips" />
+      <AppHeader backHref="/trips" onMobileMenuToggle={sidebar.toggle} />
 
-      <TripNav tripId={tripId} currentSection="overview" unseenSections={unseenSections} />
+      <TripNav tripId={tripId} currentSection="overview" unseenSections={unseenSections} mobileOpen={sidebar.isOpen} onMobileClose={sidebar.close} />
 
-      <PageTransition section="overview" tripId={tripId}>
+      <PageTransition section="overview" tripId={tripId} className="sm:pl-14">
       {/* Trip Header */}
       <div className="border-b border-white/10 px-4 md:px-8 py-6 md:py-12 bg-gradient-to-b from-white/5 to-transparent">
         <div className="max-w-6xl mx-auto relative">

@@ -16,6 +16,7 @@ import { Modal } from "@/components/ui/modal";
 import { PageTransition } from "@/components/PageTransition";
 import { ToastContainer } from "@/components/ui/toast";
 import { useToast } from "@/hooks/useToast";
+import { useSidebarState } from "@/hooks/useSidebarState";
 import { Vote, Trash2, MoreVertical } from "lucide-react";
 
 interface User {
@@ -53,6 +54,7 @@ export default function PollsPage() {
   const tripId = params.tripId as string;
 
   const { toasts, toast, removeToast } = useToast();
+  const sidebar = useSidebarState();
 
   const [polls, setPolls] = useState<Poll[]>([]);
   const [userRole, setUserRole] = useState<string>("MEMBER");
@@ -253,11 +255,11 @@ export default function PollsPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <AppHeader backHref={`/trips/${tripId}`} />
+      <AppHeader backHref={`/trips/${tripId}`} onMobileMenuToggle={sidebar.toggle} />
 
-      <TripNav tripId={tripId} currentSection="polls" />
+      <TripNav tripId={tripId} currentSection="polls" mobileOpen={sidebar.isOpen} onMobileClose={sidebar.close} />
 
-      <PageTransition section="polls" tripId={tripId}>
+      <PageTransition section="polls" tripId={tripId} className="sm:pl-14">
       {/* Page Header */}
       <div className="border-b border-white/10 px-4 md:px-8 py-6 md:py-12 bg-gradient-to-b from-white/5 to-transparent">
         <div className="max-w-6xl mx-auto">

@@ -17,6 +17,7 @@ import { Select } from "@/components/ui/select";
 import { PageTransition } from "@/components/PageTransition";
 import { ToastContainer } from "@/components/ui/toast";
 import { useToast } from "@/hooks/useToast";
+import { useSidebarState } from "@/hooks/useSidebarState";
 import { TRANSPORT_MODES } from "@/lib/validations/transport";
 import { parseGoogleMapsLink, isGoogleShortLink } from "@/lib/maps-link-parser";
 import { Linkify } from "@/components/ui/linkify";
@@ -101,6 +102,7 @@ export default function TransportPage() {
   const tripId = params.tripId as string;
 
   const { toasts, toast, removeToast } = useToast();
+  const sidebar = useSidebarState();
 
   const [transports, setTransports] = useState<Transport[]>([]);
   const [members, setMembers] = useState<TripMember[]>([]);
@@ -524,11 +526,11 @@ export default function TransportPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <AppHeader backHref={`/trips/${tripId}`} />
+      <AppHeader backHref={`/trips/${tripId}`} onMobileMenuToggle={sidebar.toggle} />
 
-      <TripNav tripId={tripId} currentSection="transport" />
+      <TripNav tripId={tripId} currentSection="transport" mobileOpen={sidebar.isOpen} onMobileClose={sidebar.close} />
 
-      <PageTransition section="transport" tripId={tripId}>
+      <PageTransition section="transport" tripId={tripId} className="sm:pl-14">
       <main className="px-4 md:px-8 py-8 md:py-16">
         <div className="max-w-4xl mx-auto">
           {/* Page Header */}

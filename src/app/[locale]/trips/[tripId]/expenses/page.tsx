@@ -14,6 +14,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { PageTransition } from "@/components/PageTransition";
 import { ToastContainer } from "@/components/ui/toast";
 import { useToast } from "@/hooks/useToast";
+import { useSidebarState } from "@/hooks/useSidebarState";
 import { ConfirmDeleteModal } from "@/components/ConfirmDeleteModal";
 import { Modal } from "@/components/ui/modal";
 import { Select } from "@/components/ui/select";
@@ -63,6 +64,7 @@ export default function ExpensesPage() {
   const params = useParams();
   const tripId = params.tripId as string;
   const { toasts, toast, removeToast } = useToast();
+  const sidebar = useSidebarState();
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [userRole, setUserRole] = useState<string>("MEMBER");
@@ -473,11 +475,11 @@ export default function ExpensesPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <AppHeader backHref={`/trips/${tripId}`} />
+      <AppHeader backHref={`/trips/${tripId}`} onMobileMenuToggle={sidebar.toggle} />
 
-      <TripNav tripId={tripId} currentSection="expenses" />
+      <TripNav tripId={tripId} currentSection="expenses" mobileOpen={sidebar.isOpen} onMobileClose={sidebar.close} />
 
-      <PageTransition section="expenses" tripId={tripId}>
+      <PageTransition section="expenses" tripId={tripId} className="sm:pl-14">
       {/* Page Header */}
       <div className="border-b border-white/10 px-4 md:px-8 py-6 md:py-12 bg-gradient-to-b from-white/5 to-transparent">
         <div className="max-w-6xl mx-auto">

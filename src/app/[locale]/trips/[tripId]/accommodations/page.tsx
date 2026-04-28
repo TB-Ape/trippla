@@ -18,6 +18,7 @@ import { Modal } from "@/components/ui/modal";
 import { PageTransition } from "@/components/PageTransition";
 import { ToastContainer } from "@/components/ui/toast";
 import { useToast } from "@/hooks/useToast";
+import { useSidebarState } from "@/hooks/useSidebarState";
 import { Hotel, MapPin, Pencil, Trash2, Wallet, MoreVertical } from "lucide-react";
 
 interface AccommodationItem {
@@ -56,6 +57,7 @@ export default function AccommodationsPage() {
   const tripId = params.tripId as string;
 
   const { toasts, toast, removeToast } = useToast();
+  const sidebar = useSidebarState();
 
   const [items, setItems] = useState<AccommodationItem[]>([]);
   const [members, setMembers] = useState<TripMember[]>([]);
@@ -284,11 +286,11 @@ export default function AccommodationsPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <AppHeader backHref={`/trips/${tripId}`} />
+      <AppHeader backHref={`/trips/${tripId}`} onMobileMenuToggle={sidebar.toggle} />
 
-      <TripNav tripId={tripId} currentSection="accommodations" />
+      <TripNav tripId={tripId} currentSection="accommodations" mobileOpen={sidebar.isOpen} onMobileClose={sidebar.close} />
 
-      <PageTransition section="accommodations" tripId={tripId}>
+      <PageTransition section="accommodations" tripId={tripId} className="sm:pl-14">
         {/* Page Header */}
         <div className="border-b border-white/10 px-4 md:px-8 py-6 md:py-12 bg-gradient-to-b from-white/5 to-transparent">
           <div className="max-w-6xl mx-auto">

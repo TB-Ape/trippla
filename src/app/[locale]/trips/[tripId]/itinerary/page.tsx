@@ -19,6 +19,7 @@ import { Select } from "@/components/ui/select";
 import { PageTransition } from "@/components/PageTransition";
 import { ToastContainer } from "@/components/ui/toast";
 import { useToast } from "@/hooks/useToast";
+import { useSidebarState } from "@/hooks/useSidebarState";
 import type { LucideIcon } from "lucide-react";
 import { Target, UtensilsCrossed, MapPin, Calendar, Pencil, Trash2, MoreVertical } from "lucide-react";
 
@@ -59,6 +60,7 @@ export default function ItineraryPage() {
   ];
 
   const { toasts, toast, removeToast } = useToast();
+  const sidebar = useSidebarState();
 
   const [items, setItems] = useState<ItineraryItem[]>([]);
   const [userRole, setUserRole] = useState<string>("MEMBER");
@@ -312,11 +314,11 @@ export default function ItineraryPage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <AppHeader backHref={`/trips/${tripId}`} />
+      <AppHeader backHref={`/trips/${tripId}`} onMobileMenuToggle={sidebar.toggle} />
 
-      <TripNav tripId={tripId} currentSection="itinerary" />
+      <TripNav tripId={tripId} currentSection="itinerary" mobileOpen={sidebar.isOpen} onMobileClose={sidebar.close} />
 
-      <PageTransition section="itinerary" tripId={tripId}>
+      <PageTransition section="itinerary" tripId={tripId} className="sm:pl-14">
       {/* Page Header */}
       <div className="border-b border-white/10 px-4 md:px-8 py-6 md:py-12 bg-gradient-to-b from-white/5 to-transparent">
         <div className="max-w-6xl mx-auto">
