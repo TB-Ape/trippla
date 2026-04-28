@@ -1,0 +1,46 @@
+import type { LucideIcon } from "lucide-react";
+import {
+  Shirt, Droplets, Plug, FileText, Tent, CookingPot, Wrench,
+  Flashlight, Footprints, Compass, ShieldCheck, Waves, Anchor,
+  Car, Cookie, Mountain, Briefcase, Package,
+} from "lucide-react";
+
+export const CATEGORY_ICON: Record<string, LucideIcon> = {
+  // English
+  clothing: Shirt,
+  toiletries: Droplets,
+  electronics: Plug,
+  documents: FileText,
+  shelter: Tent,
+  cooking: CookingPot,
+  tools: Wrench,
+  lighting: Flashlight,
+  gear: Footprints,
+  navigation: Compass,
+  safety: ShieldCheck,
+  beach: Waves,
+  watersports: Anchor,
+  car: Car,
+  snacks: Cookie,
+  skigear: Mountain,
+  formal: Briefcase,
+  other: Package,
+  // German
+  kleidung: Shirt,
+  toilettenartikel: Droplets,
+  elektronik: Plug,
+  dokumente: FileText,
+  unterkunft: Tent,
+  zelt: Tent,
+  kochen: CookingPot,
+  werkzeug: Wrench,
+  beleuchtung: Flashlight,
+  ausrüstung: Footprints,
+  sicherheit: ShieldCheck,
+  strand: Waves,
+  wassersport: Anchor,
+  auto: Car,
+  skiausrüstung: Mountain,
+  abendgarderobe: Briefcase,
+  sonstiges: Package,
+};

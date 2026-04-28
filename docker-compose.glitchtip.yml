@@ -1,0 +1,49 @@
+# Glitchtip — self-hosted error monitoring
+# Start: docker compose -f docker-compose.glitchtip.yml up -d
+# First-time setup: see Step 3 below
+
+x-env: &env
+  DATABASE_URL: postgresql://glitchtip:${GLITCHTIP_DB_PASSWORD}@glitchtip-db:5432/glitchtip
+  SECRET_KEY: ${GLITCHTIP_SECRET_KEY}
+  PORT: 8000
+  EMAIL_URL: consolemail://
+  GLITCHTIP_DOMAIN: http://localhost:8000
+  CELERY_WORKER_CONCURRENCY: 1
+
+services:
+  glitchtip-db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: glitchtip
+      POSTGRES_PASSWORD: ${GLITCHTIP_DB_PASSWORD}
+      POSTGRES_DB: glitchtip
+    volumes:
+      - ${HDD_PATH}/glitchtip/postgres:/var/lib/postgresql/data
+
+  glitchtip-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  glitchtip-web:
+    image: glitchtip/glitchtip:latest
+    restart: unless-stopped
+    depends_on:
+      - glitchtip-db
+      - glitchtip-redis
+    ports:
+      - "8000:8000"
+    environment:
+      <<: *env
+      REDIS_URL: redis://glitchtip-redis:6379
+
+  glitchtip-worker:
+    image: glitchtip/glitchtip:latest
+    restart: unless-stopped
+    command: ./bin/run-celery-with-beat.sh
+    depends_on:
+      - glitchtip-db
+      - glitchtip-redis
+    environment:
+      <<: *env
+      REDIS_URL: redis://glitchtip-redis:6379

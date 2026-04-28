@@ -1,0 +1,421 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String?   // hashed, null for OAuth users
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  termsAcceptedAt DateTime?
+  termsVersion    String?
+  hasOnboarded    Boolean   @default(false)
+
+  // Relations
+  accounts       Account[]
+  sessions       Session[]
+  ownedTrips     Trip[]           @relation("TripOwner")
+  tripMembers    TripMember[]
+  itineraryItems ItineraryItem[]
+  expenses       Expense[]
+  expenseSplits  ExpenseSplit[]
+  packingLists   PackingList[]    @relation("PackingListCreator")
+  packingItems   PackingItem[]
+  polls          Poll[]
+  pollVotes      PollVote[]
+  comments       Comment[]
+  activities     Activity[]
+  stages         Stage[]
+  transports     Transport[]
+  pushSubscriptions       PushSubscription[]
+  notificationPreferences NotificationPreference[]
+  tripMutes               TripNotificationMute[]
+}
+
+// NextAuth tables
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Trip Management
+model Trip {
+  id                  String   @id @default(cuid())
+  name                String
+  description         String?  @db.Text
+  destination         String?
+  type                String?
+  startDate           DateTime?
+  endDate             DateTime?
+  imageUrl            String?
+  currency            String   @default("EUR")
+  joinCode            String   @unique @default(cuid())
+  ownerId             String
+  isTemplate          Boolean  @default(false)
+  templateDescription String?  @db.Text
+  templateUseCount    Int      @default(0)
+  isBucketList        Boolean  @default(false)
+  isTemplateStore     Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  owner        User           @relation("TripOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members      TripMember[]
+  itinerary    ItineraryItem[]
+  expenses     Expense[]
+  packingLists PackingList[]
+  polls        Poll[]
+  stages       Stage[]
+  transports   Transport[]
+  activities        Activity[]
+  notificationMutes TripNotificationMute[]
+
+  @@index([ownerId])
+  @@index([joinCode])
+}
+
+model TripMember {
+  id        String   @id @default(cuid())
+  tripId    String
+  userId    String
+  role      MemberRole @default(MEMBER)
+  joinedAt  DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tripId, userId])
+  @@index([tripId])
+  @@index([userId])
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+// Itinerary
+model ItineraryItem {
+  id          String    @id @default(cuid())
+  tripId      String
+  title       String
+  description String?   @db.Text
+  location    String?
+  startTime   DateTime
+  endTime     DateTime?
+  category    String?   // e.g., "activity", "meal", "travel", "accommodation"
+  isAllDay    Boolean   @default(false)
+  cost        Float?
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  trip      Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdBy User      @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  comments  Comment[]
+  expense   Expense?
+
+  @@index([tripId])
+  @@index([startTime])
+  @@index([createdById])
+}
+
+// Expense Tracking
+model Expense {
+  id                String   @id @default(cuid())
+  tripId            String
+  description       String
+  amount            Decimal  @db.Decimal(10, 2)
+  currency          String   @default("USD")
+  date              DateTime @default(now())
+  paidById          String
+  category          String?  // e.g., "accommodation", "food", "transport", "activity"
+  itineraryItemId   String?  @unique
+  transportId       String?  @unique
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  trip          Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  paidBy        User           @relation(fields: [paidById], references: [id])
+  splits        ExpenseSplit[]
+  itineraryItem ItineraryItem? @relation(fields: [itineraryItemId], references: [id], onDelete: Cascade)
+  transport     Transport?     @relation(fields: [transportId], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@index([paidById])
+  @@index([transportId])
+}
+
+model ExpenseSplit {
+  id         String  @id @default(cuid())
+  expenseId  String
+  userId     String
+  amount     Decimal @db.Decimal(10, 2)
+  isPaid     Boolean @default(false)
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId])
+  @@index([expenseId])
+  @@index([userId])
+}
+
+// Packing Lists
+model PackingList {
+  id                  String   @id @default(cuid())
+  tripId              String
+  name                String   @default("Packing List")
+  isPrivate           Boolean  @default(false)
+  isTemplate          Boolean  @default(false)
+  templateDescription String?  @db.Text
+  tripCategory        String?  // trip category override for community template filtering
+  templateUseCount    Int      @default(0)
+  shareCode           String   @unique @default(cuid())
+  createdById         String
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  trip      Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdBy User          @relation("PackingListCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  items     PackingItem[]
+
+  @@index([tripId])
+  @@index([createdById])
+  @@index([shareCode])
+  @@index([isTemplate])
+}
+
+model PackingItem {
+  id            String   @id @default(cuid())
+  packingListId String
+  name          String
+  quantity      Int      @default(1)
+  category      String?  // e.g., "clothing", "toiletries", "electronics"
+  categoryEmoji String?  // custom emoji for user-defined categories
+  isPacked      Boolean  @default(false)
+  claimedById   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  packingList PackingList @relation(fields: [packingListId], references: [id], onDelete: Cascade)
+  claimedBy   User?       @relation(fields: [claimedById], references: [id])
+
+  @@index([packingListId])
+}
+
+// Polls & Voting
+model Poll {
+  id            String   @id @default(cuid())
+  tripId        String
+  question      String
+  description   String?  @db.Text
+  allowMultiple Boolean  @default(false)
+  expiresAt     DateTime?
+  createdById   String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  trip      Trip         @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdBy User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  options   PollOption[]
+
+  @@index([tripId])
+  @@index([createdById])
+}
+
+model PollOption {
+  id        String   @id @default(cuid())
+  pollId    String
+  text      String
+  createdAt DateTime @default(now())
+
+  poll  Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes PollVote[]
+
+  @@index([pollId])
+}
+
+model PollVote {
+  id       String @id @default(cuid())
+  pollId   String
+  optionId String
+  userId   String
+
+  option PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, optionId, userId])
+  @@index([pollId])
+  @@index([userId])
+}
+
+// Comments (optional but useful for collaboration)
+model Comment {
+  id              String   @id @default(cuid())
+  content         String   @db.Text
+  itineraryItemId String?
+  userId          String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  itineraryItem ItineraryItem? @relation(fields: [itineraryItemId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([itineraryItemId])
+  @@index([userId])
+}
+
+// Hiking Stages
+model Stage {
+  id            String    @id @default(cuid())
+  tripId        String
+  order         Int
+  title         String
+  date          DateTime?
+  description   String?   @db.Text
+  startLocation String?
+  endLocation   String?
+  distance      Float?    // km
+  elevationGain Int?      // meters
+  elevationLoss Int?      // meters
+  duration      Float?    // hours
+  difficulty    String?   // easy, moderate, hard, expert
+  accommodation String?   // hut, campsite, hotel, bivouac, none
+  gpxPath       String?   // path to uploaded GPX file
+  createdById   String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  trip      Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdBy User @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([tripId])
+  @@index([createdById])
+}
+
+// Transportation
+model Transport {
+  id                String   @id @default(cuid())
+  tripId            String
+  order             Int
+  title             String
+  mode              String   // plane, train, bus, car, ferry, bike, walk, taxi, other
+  departureLocation String
+  arrivalLocation   String
+  departureTime     DateTime
+  arrivalTime       DateTime
+  bookingReference  String?
+  notes             String?  @db.Text
+  cost              Float?
+  createdById       String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  trip      Trip    @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  createdBy User    @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  expense   Expense?
+
+  @@index([tripId])
+  @@index([createdById])
+}
+
+// Activity Feed
+model Activity {
+  id         String   @id @default(cuid())
+  tripId     String
+  userId     String
+  action     String   // "created", "updated", "deleted", "voted", "joined"
+  entityType String   // "itinerary", "expense", "packing", "poll", "trip"
+  entityId   String?
+  entityName String?
+  createdAt  DateTime @default(now())
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, createdAt])
+}
+
+// Push Notifications
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model NotificationPreference {
+  id         String @id @default(cuid())
+  userId     String
+  entityType String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, entityType])
+  @@index([userId])
+}
+
+model TripNotificationMute {
+  id      String   @id @default(cuid())
+  userId  String
+  tripId  String
+  mutedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tripId])
+  @@index([userId])
+  @@index([tripId])
+}

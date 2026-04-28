@@ -1,0 +1,64 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: trippla
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: trippla
+    volumes:
+      - ${HDD_PATH}/trippla/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trippla"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_LOCATIONIQ_API_KEY: ${NEXT_PUBLIC_LOCATIONIQ_API_KEY}
+        NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
+        NEXT_PUBLIC_GLITCHTIP_DSN: ${GLITCHTIP_DSN}
+    restart: unless-stopped
+    ports:
+      - "3017:3000"
+    volumes:
+      - ${HDD_PATH}/trippla/uploads:/app/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://trippla:${POSTGRES_PASSWORD}@db:5432/trippla
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      APP_URL: ${APP_URL}
+      NEXT_PUBLIC_LOCATIONIQ_API_KEY: ${NEXT_PUBLIC_LOCATIONIQ_API_KEY}
+      NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${NEXT_PUBLIC_VAPID_PUBLIC_KEY}
+      VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY}
+      VAPID_CONTACT_EMAIL: ${VAPID_CONTACT_EMAIL}
+      NEXT_PUBLIC_GLITCHTIP_DSN: ${GLITCHTIP_DSN}
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/api/health',(r)=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  backup:
+    build:
+      context: .
+      dockerfile: docker/backup/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ${HDD_PATH}/trippla/backups:/backups
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_USER: trippla
+      POSTGRES_DB: trippla
+      PGPASSWORD: ${POSTGRES_PASSWORD}
