@@ -378,7 +378,7 @@ export default function StagesPage() {
             </Card>
           ) : (
             <div className="space-y-4">
-              {stages.map((stage) => {
+              {stages.map((stage, idx) => {
               const AccommodationIcon = getAccommodationIcon(stage.accommodation);
               return (
                 <Card key={stage.id} className="p-0 overflow-hidden">
@@ -386,7 +386,7 @@ export default function StagesPage() {
                     {/* Day number sidebar */}
                     <div className="w-16 md:w-20 bg-gradient-to-b from-teal-500/20 to-emerald-500/20 border-r border-white/10 flex flex-col items-center justify-center flex-shrink-0 py-2">
                       <span className="text-xs text-gray-500 uppercase">{t("stages.day")}</span>
-                      <span className="text-2xl md:text-3xl font-black text-teal-400">{stage.order}</span>
+                      <span className="text-2xl md:text-3xl font-black text-teal-400">{idx + 1}</span>
                       {stage.date && (
                         <span className="text-[10px] text-gray-500 mt-1">
                           {new Date(stage.date).toLocaleDateString(locale, { month: "short", day: "numeric" })}

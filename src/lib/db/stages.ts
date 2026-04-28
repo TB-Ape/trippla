@@ -8,7 +8,7 @@ export async function getTripStages(tripId: string) {
         select: { id: true, name: true, email: true },
       },
     },
-    orderBy: { order: "asc" },
+    orderBy: [{ date: { sort: "asc", nulls: "last" } }, { order: "asc" }],
   });
 }
 
