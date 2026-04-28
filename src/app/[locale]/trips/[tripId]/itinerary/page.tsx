@@ -38,6 +38,7 @@ interface ItineraryItem {
     name: string | null;
     email: string;
   };
+  participants: { user: { id: string; name: string | null; email: string } }[];
 }
 
 interface TripMember {
@@ -108,7 +109,10 @@ export default function ItineraryPage() {
         throw new Error("Failed to fetch itinerary");
       }
       const data = await itineraryRes.json();
-      setItems(data.items);
+      setItems(data.items.map((item: ItineraryItem) => ({
+        ...item,
+        participants: item.participants ?? [],
+      })));
       if (data.userRole) setUserRole(data.userRole);
       if (data.tripStartDate) setTripStartDate(new Date(data.tripStartDate).toISOString().slice(0, 16));
       if (tripRes.ok) {
@@ -251,6 +255,53 @@ export default function ItineraryPage() {
     } catch (error) {
       console.error("Error deleting item:", error);
       toast.error(t("itinerary.deleteFailed"));
+    }
+  }
+
+  async function handleJoinToggle(item: ItineraryItem) {
+    const isJoined = item.participants.some((p) => p.user.id === session?.user?.id);
+    const method = isJoined ? "DELETE" : "POST";
+
+    setItems((prev) =>
+      prev.map((i) => {
+        if (i.id !== item.id) return i;
+        if (isJoined) {
+          return {
+            ...i,
+            participants: i.participants.filter((p) => p.user.id !== session?.user?.id),
+          };
+        } else {
+          return {
+            ...i,
+            participants: [
+              ...i.participants,
+              { user: { id: session!.user!.id, name: session!.user!.name ?? null, email: session!.user!.email! } },
+            ],
+          };
+        }
+      })
+    );
+
+    setSelectedItem((prev) => {
+      if (!prev || prev.id !== item.id) return prev;
+      if (isJoined) {
+        return { ...prev, participants: prev.participants.filter((p) => p.user.id !== session?.user?.id) };
+      } else {
+        return {
+          ...prev,
+          participants: [
+            ...prev.participants,
+            { user: { id: session!.user!.id, name: session!.user!.name ?? null, email: session!.user!.email! } },
+          ],
+        };
+      }
+    });
+
+    try {
+      const res = await fetch(`/api/trips/${tripId}/itinerary/${item.id}/join`, { method });
+      if (!res.ok) throw new Error("Failed");
+    } catch {
+      fetchItems();
     }
   }
 
@@ -477,6 +528,19 @@ export default function ItineraryPage() {
                       )}
 
                       <div className="flex items-center gap-3 text-sm text-gray-500">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleJoinToggle(item); }}
+                          className={`flex items-center gap-1.5 px-3 py-1 border text-xs font-bold uppercase tracking-wider transition-colors ${
+                            item.participants.some((p) => p.user.id === session?.user?.id)
+                              ? "border-teal-500 bg-teal-500/10 text-teal-400"
+                              : "border-white/20 hover:bg-white/5 text-gray-400"
+                          }`}
+                        >
+                          {item.participants.some((p) => p.user.id === session?.user?.id)
+                            ? t("itinerary.leave")
+                            : t("itinerary.join")}
+                          <span className="text-gray-500 ml-1">· {t("itinerary.going", { count: item.participants.length })}</span>
+                        </button>
                         {item.cost != null && item.cost > 0 && (
                           <span className="text-teal-400 font-bold">
                             {item.cost.toLocaleString(locale, { style: "currency", currency: "EUR" })}
@@ -906,6 +970,36 @@ export default function ItineraryPage() {
                 <p className="text-sm text-gray-500 mb-1">{t("common.addedBy")}</p>
                 <p className="text-lg">{selectedItem.createdBy.name || selectedItem.createdBy.email}</p>
               </div>
+
+              <div>
+                <p className="text-sm text-gray-500 mb-2">{t("itinerary.whoIsGoing")}</p>
+                {selectedItem.participants.length === 0 ? (
+                  <p className="text-gray-500 text-sm">{t("itinerary.beFirstToJoin")}</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedItem.participants.map((p) => (
+                      <span
+                        key={p.user.id}
+                        className="px-3 py-1 bg-teal-500/10 border border-teal-500/30 text-teal-400 text-sm"
+                      >
+                        {p.user.name || p.user.email}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-3 mb-3">
+              <Button
+                variant={selectedItem.participants.some((p) => p.user.id === session?.user?.id) ? "outline" : "gradient"}
+                className="flex-1"
+                onClick={() => handleJoinToggle(selectedItem)}
+              >
+                {selectedItem.participants.some((p) => p.user.id === session?.user?.id)
+                  ? t("itinerary.leave")
+                  : t("itinerary.join")}
+              </Button>
             </div>
 
             {canModify(selectedItem.createdBy.id) && (
