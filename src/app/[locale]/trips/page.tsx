@@ -15,6 +15,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { ToastContainer } from "@/components/ui/toast";
 import { useToast } from "@/hooks/useToast";
 import { AppNav } from "@/components/AppNav";
+import { useSidebarState } from "@/hooks/useSidebarState";
 import { Modal } from "@/components/ui/modal";
 import { OnboardingModal } from "@/components/OnboardingModal";
 import { Select } from "@/components/ui/select";
@@ -49,6 +50,7 @@ export default function TripsPage() {
   const locale = useLocale();
   const t = useTranslations();
   const { toasts, toast, removeToast } = useToast();
+  const sidebar = useSidebarState();
 
   const [trips, setTrips] = useState<Trip[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -220,10 +222,11 @@ export default function TripsPage() {
       {showOnboarding && (
         <OnboardingModal onDismiss={() => setShowOnboarding(false)} />
       )}
-      <AppHeader />
+      <AppHeader onMobileMenuToggle={sidebar.toggle} />
 
-      <AppNav current="trips" />
+      <AppNav current="trips" mobileOpen={sidebar.isOpen} onMobileClose={sidebar.close} />
 
+      <div className="sm:pl-14">
       <div className="border-b border-white/10 px-4 md:px-8 py-6 md:py-12 bg-gradient-to-b from-white/5 to-transparent">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-end gap-4 flex-wrap">
@@ -396,6 +399,7 @@ export default function TripsPage() {
       </Modal>
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+      </div>
     </div>
   );
 }

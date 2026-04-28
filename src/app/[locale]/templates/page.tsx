@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AppNav } from "@/components/AppNav";
 import { AppHeader } from "@/components/AppHeader";
+import { useSidebarState } from "@/hooks/useSidebarState";
 import { ToastContainer } from "@/components/ui/toast";
 import { useToast } from "@/hooks/useToast";
 import type { LucideIcon } from "lucide-react";
@@ -169,6 +170,7 @@ function TemplatesPageInner() {
   const [newTemplateCreating, setNewTemplateCreating] = useState(false);
 
   const { toasts, toast, removeToast } = useToast();
+  const sidebar = useSidebarState();
 
   useEffect(() => {
     if (status === "unauthenticated") router.push(`/${locale}/login`);
@@ -465,9 +467,10 @@ function TemplatesPageInner() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <AppHeader />
-      <AppNav current="templates" />
+      <AppHeader onMobileMenuToggle={sidebar.toggle} />
+      <AppNav current="templates" mobileOpen={sidebar.isOpen} onMobileClose={sidebar.close} />
 
+      <div className="sm:pl-14">
       <div className="border-b border-white/10 px-4 md:px-8 py-6 md:py-12 bg-gradient-to-b from-white/5 to-transparent">
         <div className="max-w-6xl mx-auto">
           <h1 className="flex items-center gap-3 text-4xl md:text-6xl font-black mb-2 tracking-tighter">
@@ -1124,6 +1127,7 @@ function TemplatesPageInner() {
       )}
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
+      </div>
     </div>
   );
 }
