@@ -248,7 +248,11 @@ export async function getWeatherForTrip(
 
   const entries = Array.from(locationDates.entries());
   const weatherPromises = entries.map(async ([location, dates]) => {
-    const coords = await geocodeLocation(location);
+    let coords = await geocodeLocation(location);
+    // If the specific location can't be geocoded, fall back to the trip destination
+    if (!coords && destination && location !== destination) {
+      coords = await geocodeLocation(destination);
+    }
     if (!coords) return;
 
     dates.sort();
