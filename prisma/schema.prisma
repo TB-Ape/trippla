@@ -36,8 +36,9 @@ model User {
   packingItems   PackingItem[]
   polls          Poll[]
   pollVotes      PollVote[]
-  comments       Comment[]
-  activities     Activity[]
+  comments                Comment[]
+  itineraryParticipations ItineraryParticipant[]
+  activities              Activity[]
   stages         Stage[]
   transports     Transport[]
   pushSubscriptions       PushSubscription[]
@@ -156,8 +157,9 @@ model ItineraryItem {
 
   trip      Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
   createdBy User      @relation(fields: [createdById], references: [id], onDelete: Cascade)
-  comments  Comment[]
-  expense   Expense?
+  comments     Comment[]
+  participants ItineraryParticipant[]
+  expense      Expense?
 
   @@index([tripId])
   @@index([startTime])
@@ -306,6 +308,20 @@ model Comment {
   itineraryItem ItineraryItem? @relation(fields: [itineraryItemId], references: [id], onDelete: Cascade)
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([itineraryItemId])
+  @@index([userId])
+}
+
+model ItineraryParticipant {
+  id              String   @id @default(cuid())
+  itineraryItemId String
+  userId          String
+  joinedAt        DateTime @default(now())
+
+  itineraryItem ItineraryItem @relation(fields: [itineraryItemId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([itineraryItemId, userId])
   @@index([itineraryItemId])
   @@index([userId])
 }
