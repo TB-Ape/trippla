@@ -117,22 +117,30 @@ export function Sidebar({
     const idx = links.indexOf(document.activeElement as HTMLElement);
     if (idx === -1) return;
 
+    let nextIdx: number | null = null;
+
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      links[(idx + 1) % links.length].focus();
+      nextIdx = (idx + 1) % links.length;
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      links[(idx - 1 + links.length) % links.length].focus();
+      nextIdx = (idx - 1 + links.length) % links.length;
     } else if (e.key === "Home") {
       e.preventDefault();
-      links[0].focus();
+      nextIdx = 0;
     } else if (e.key === "End") {
       e.preventDefault();
-      links[links.length - 1].focus();
+      nextIdx = links.length - 1;
     } else if (e.key === " ") {
       e.preventDefault();
-      const href = (document.activeElement as HTMLAnchorElement)?.getAttribute("href");
+      const href = (document.activeElement as Element)?.getAttribute("href");
       if (href) router.push(href);
+    }
+
+    if (nextIdx !== null) {
+      links[idx].setAttribute("tabindex", "-1");
+      links[nextIdx].setAttribute("tabindex", "0");
+      links[nextIdx].focus();
     }
   }
 
@@ -142,6 +150,7 @@ export function Sidebar({
       <nav
         ref={navRef}
         aria-label={ariaLabel}
+        aria-hidden={mobileOpen}
         onKeyDown={handleNavKeyDown}
         className={`fixed left-0 top-14 bottom-0 z-30 flex-col bg-[#0d0d0d] border-r border-white/10 transition-[width] duration-200 hidden sm:flex ${
           desktopOpen ? "w-56" : "w-14"
