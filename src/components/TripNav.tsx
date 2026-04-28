@@ -1,35 +1,70 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useRef, useState, useEffect } from "react";
-import { LocaleLink as Link } from "@/components/LocaleLink";
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { Sidebar } from "@/components/Sidebar";
+import type { SidebarItem } from "@/components/Sidebar";
+import {
+  LayoutDashboard,
+  Calendar,
+  BedDouble,
+  Wallet,
+  Plane,
+  Package,
+  Vote,
+  Map,
+} from "lucide-react";
+
+type TripSection =
+  | "overview"
+  | "itinerary"
+  | "accommodations"
+  | "expenses"
+  | "transport"
+  | "packing"
+  | "polls"
+  | "stages";
 
 interface TripNavProps {
   tripId: string;
-  currentSection: "overview" | "itinerary" | "accommodations" | "expenses" | "packing" | "polls" | "transport" | "stages";
+  currentSection: TripSection;
   unseenSections?: Set<string>;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
-const SECTIONS = [
-  { key: "overview", href: "" },
-  { key: "itinerary", href: "/itinerary" },
-  { key: "accommodations", href: "/accommodations" },
-  { key: "expenses", href: "/expenses" },
-  { key: "transport", href: "/transport" },
-  { key: "packing", href: "/packing" },
-  { key: "polls", href: "/polls" },
-  { key: "stages", href: "/stages" },
-] as const;
+const SECTION_ICONS: Record<TripSection, React.ReactNode> = {
+  overview: <LayoutDashboard size={18} />,
+  itinerary: <Calendar size={18} />,
+  accommodations: <BedDouble size={18} />,
+  expenses: <Wallet size={18} />,
+  transport: <Plane size={18} />,
+  packing: <Package size={18} />,
+  polls: <Vote size={18} />,
+  stages: <Map size={18} />,
+};
 
-export function TripNav({ tripId, currentSection, unseenSections }: TripNavProps) {
+const SECTION_HREFS: Record<TripSection, string> = {
+  overview: "",
+  itinerary: "/itinerary",
+  accommodations: "/accommodations",
+  expenses: "/expenses",
+  transport: "/transport",
+  packing: "/packing",
+  polls: "/polls",
+  stages: "/stages",
+};
+
+export function TripNav({
+  tripId,
+  currentSection,
+  unseenSections,
+  mobileOpen,
+  onMobileClose,
+}: TripNavProps) {
   const t = useTranslations("tripDetail");
-  const navRef = useRef<HTMLElement>(null);
-  const [showRightFade, setShowRightFade] = useState(false);
-  const [showLeftFade, setShowLeftFade] = useState(false);
-
   const router = useRouter();
   const locale = useLocale();
 
@@ -44,96 +79,32 @@ export function TripNav({ tripId, currentSection, unseenSections }: TripNavProps
     s: () => router.push(`/${locale}/trips/${tripId}/stages`),
   });
 
-  function handleNavKeyDown(e: React.KeyboardEvent<HTMLElement>) {
-    const tabs = Array.from(
-      navRef.current?.querySelectorAll('[role="tab"]') ?? []
-    ) as HTMLElement[];
-    const idx = tabs.indexOf(document.activeElement as HTMLElement);
-    if (idx === -1) return;
+  const sections: TripSection[] = [
+    "overview",
+    "itinerary",
+    "accommodations",
+    "expenses",
+    "transport",
+    "packing",
+    "polls",
+    "stages",
+  ];
 
-    if (e.key === "ArrowRight") {
-      e.preventDefault();
-      tabs[(idx + 1) % tabs.length].focus();
-    } else if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      tabs[(idx - 1 + tabs.length) % tabs.length].focus();
-    } else if (e.key === "Home") {
-      e.preventDefault();
-      tabs[0].focus();
-    } else if (e.key === "End") {
-      e.preventDefault();
-      tabs[tabs.length - 1].focus();
-    } else if (e.key === " ") {
-      e.preventDefault();
-      const href = (document.activeElement as HTMLAnchorElement)?.getAttribute("href");
-      if (href) router.push(href);
-    }
-  }
-
-  useEffect(() => {
-    const el = navRef.current;
-    if (!el) return;
-
-    const check = () => {
-      setShowRightFade(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
-      setShowLeftFade(el.scrollLeft > 4);
-    };
-
-    check();
-
-    // Scroll active tab into view on mount
-    const activeEl = el.querySelector('[data-active="true"]') as HTMLElement | null;
-    activeEl?.scrollIntoView({ behavior: "instant", inline: "center", block: "nearest" });
-
-    el.addEventListener("scroll", check, { passive: true });
-    window.addEventListener("resize", check);
-    return () => {
-      el.removeEventListener("scroll", check);
-      window.removeEventListener("resize", check);
-    };
-  }, []);
+  const items: SidebarItem[] = sections.map((key) => ({
+    key,
+    href: `/trips/${tripId}${SECTION_HREFS[key]}`,
+    icon: SECTION_ICONS[key],
+    label: t(key),
+    badge: unseenSections?.has(key) && key !== currentSection,
+  }));
 
   return (
-    <div className="relative border-b border-white/10 bg-[#0d0d0d]">
-      <nav ref={navRef} className="overflow-x-auto scrollbar-hide" role="tablist" aria-label="Trip navigation" onKeyDown={handleNavKeyDown}>
-        <div className="flex min-w-max px-4 md:px-8">
-          {SECTIONS.map((section) => {
-            const isActive = section.key === currentSection;
-            return (
-              <Link
-                key={section.key}
-                href={`/trips/${tripId}${section.href}`}
-                data-active={isActive}
-                role="tab"
-                aria-selected={isActive}
-                tabIndex={isActive ? 0 : -1}
-                className={`inline-flex items-center gap-1.5 px-4 py-3 text-xs font-bold uppercase tracking-wider border-b-2 whitespace-nowrap transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-teal-400 focus-visible:outline-offset-[-2px] ${
-                  isActive
-                    ? "border-teal-400 text-teal-400"
-                    : "border-transparent text-gray-400 hover:text-gray-300 hover:border-white/20"
-                }`}
-              >
-                {t(section.key)}
-                {unseenSections?.has(section.key) && !isActive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-teal-400 shrink-0" />
-                )}
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
-      {showLeftFade && (
-        <div
-          className="absolute left-0 top-0 h-full w-12 pointer-events-none"
-          style={{ background: "linear-gradient(to left, transparent, #0d0d0d)" }}
-        />
-      )}
-      {showRightFade && (
-        <div
-          className="absolute right-0 top-0 h-full w-12 pointer-events-none"
-          style={{ background: "linear-gradient(to right, transparent, #0d0d0d)" }}
-        />
-      )}
-    </div>
+    <Sidebar
+      items={items}
+      current={currentSection}
+      ariaLabel="Trip navigation"
+      mobileOpen={mobileOpen}
+      onMobileClose={onMobileClose}
+    />
   );
 }
