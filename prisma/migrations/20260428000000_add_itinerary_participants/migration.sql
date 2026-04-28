@@ -17,9 +17,6 @@ CREATE INDEX "ItineraryParticipant_userId_idx" ON "ItineraryParticipant"("userId
 -- CreateIndex
 CREATE UNIQUE INDEX "ItineraryParticipant_itineraryItemId_userId_key" ON "ItineraryParticipant"("itineraryItemId", "userId");
 
--- CreateIndex
-CREATE INDEX "Expense_transportId_idx" ON "Expense"("transportId");
-
 -- AddForeignKey
 ALTER TABLE "ItineraryParticipant" ADD CONSTRAINT "ItineraryParticipant_itineraryItemId_fkey" FOREIGN KEY ("itineraryItemId") REFERENCES "ItineraryItem"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
