@@ -1,3 +1,5 @@
+import "@testing-library/jest-dom";
+
 // Patch HTMLElement.prototype.focus so that jsdom correctly focuses
 // contenteditable elements. jsdom does not treat contentEditable='true' (set as
 // a JS property) as a focusable element, because it only checks the DOM attribute.
