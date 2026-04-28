@@ -253,6 +253,11 @@
     "deleteFailed": "Aktivität konnte nicht gelöscht werden",
     "deleteTitle": "Aktivität löschen",
     "deleteConfirm": "Möchtest du diese Aktivität wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
+    "join": "Mitmachen",
+    "leave": "Verlassen",
+    "going": "{count} dabei",
+    "whoIsGoing": "Wer ist dabei",
+    "beFirstToJoin": "Sei der Erste, der diese Aktivität mitmacht",
     "categories": {
       "activity": "Aktivität",
       "meal": "Mahlzeit",
