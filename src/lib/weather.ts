@@ -207,6 +207,23 @@ export async function getWeatherForTrip(
 
   if (dateLocationMap.size === 0) return {};
 
+  // Fill any trip-range dates that still have no location using the nearest known location.
+  // This handles days at the edges of a trip where events have no location and no trip destination is set.
+  const allDatesInRange: string[] = [];
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+    allDatesInRange.push(d.toISOString().split("T")[0]);
+  }
+  const datesWithLocation = allDatesInRange.filter((d) => dateLocationMap.has(d));
+  for (const dateKey of allDatesInRange) {
+    if (!dateLocationMap.has(dateKey) && datesWithLocation.length > 0) {
+      const dateMs = new Date(dateKey).getTime();
+      const nearest = datesWithLocation.reduce((prev, curr) =>
+        Math.abs(new Date(curr).getTime() - dateMs) < Math.abs(new Date(prev).getTime() - dateMs) ? curr : prev
+      );
+      dateLocationMap.set(dateKey, dateLocationMap.get(nearest)!);
+    }
+  }
+
   // Group dates by location
   const locationDates = new Map<string, string[]>();
   for (const [dateKey, loc] of dateLocationMap) {
