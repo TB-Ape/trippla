@@ -103,12 +103,19 @@ async function fetchWeatherFromApi(
   const maxForecast = new Date(today);
   maxForecast.setDate(maxForecast.getDate() + 15);
 
+  // Archive API typically lags 2–5 days; use a 5-day buffer so the forecast
+  // API covers that window and there are no missing days in the middle of trips.
+  const archiveCutoff = new Date(today);
+  archiveCutoff.setDate(archiveCutoff.getDate() - 5);
+
   const results: WeatherDay[] = [];
   const params = `latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_sum&timezone=auto`;
 
-  // Fetch historical data if needed (dates before today)
-  if (start < today) {
-    const histEnd = end < today ? endDate : new Date(today.getTime() - 86400000).toISOString().split("T")[0];
+  // Fetch historical data for dates older than the archive cutoff
+  if (start < archiveCutoff) {
+    const histEnd = end < archiveCutoff
+      ? endDate
+      : new Date(archiveCutoff.getTime() - 86400000).toISOString().split("T")[0];
     try {
       const res = await fetch(
         `https://archive-api.open-meteo.com/v1/archive?${params}&start_date=${startDate}&end_date=${histEnd}`
@@ -132,9 +139,9 @@ async function fetchWeatherFromApi(
     }
   }
 
-  // Fetch forecast data if needed (dates from today onwards, up to 16 days)
-  if (end >= today) {
-    const forecastStart = start >= today ? startDate : today.toISOString().split("T")[0];
+  // Fetch forecast data for recent days (bridging archive lag) and future dates
+  if (end >= archiveCutoff) {
+    const forecastStart = start >= archiveCutoff ? startDate : archiveCutoff.toISOString().split("T")[0];
     const forecastEnd = end <= maxForecast ? endDate : maxForecast.toISOString().split("T")[0];
 
     try {
