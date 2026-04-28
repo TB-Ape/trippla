@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 
 type Params = { params: Promise<{ tripId: string; itemId: string }> };
 
-export async function POST(req: Request, { params }: Params) {
+export async function POST(_req: Request, { params }: Params) {
   try {
     const { tripId, itemId } = await params;
     const session = await getServerSession(authOptions);
@@ -40,7 +40,7 @@ export async function POST(req: Request, { params }: Params) {
   }
 }
 
-export async function DELETE(req: Request, { params }: Params) {
+export async function DELETE(_req: Request, { params }: Params) {
   try {
     const { tripId, itemId } = await params;
     const session = await getServerSession(authOptions);
@@ -54,7 +54,11 @@ export async function DELETE(req: Request, { params }: Params) {
     }
 
     await prisma.itineraryParticipant.deleteMany({
-      where: { itineraryItemId: itemId, userId: session.user.id },
+      where: {
+        itineraryItemId: itemId,
+        userId: session.user.id,
+        itineraryItem: { tripId },
+      },
     });
 
     return NextResponse.json({ success: true }, { status: 200 });
