@@ -485,7 +485,8 @@ export default function ExpensesPage() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <div>
-              <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter">
+              <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter flex items-center gap-3">
+                <Wallet className="w-8 h-8 md:w-10 md:h-10 shrink-0" />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-cyan-500 to-emerald-500">
                   {t("expenses.title")}
                 </span>

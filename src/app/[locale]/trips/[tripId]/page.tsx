@@ -24,7 +24,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   MapPin, Calendar, Wallet, Vote, Plane, Timer, PartyPopper, Flag, Check,
   UtensilsCrossed, Hotel, Target, TrainFront,
-  ClipboardList, Bike, Footprints, Clock, Home,
+  ClipboardList, Bike, Footprints, Clock, Home, LayoutDashboard,
 } from "lucide-react";
 
 interface TripMember {
@@ -627,7 +627,8 @@ export default function TripDetailPage() {
           )}
           <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pr-10">
             <div>
-              <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter">
+              <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter flex items-center gap-3">
+                <LayoutDashboard className="w-8 h-8 md:w-10 md:h-10 shrink-0" />
                 {trip.name}
               </h1>
               {trip.isTemplate && (

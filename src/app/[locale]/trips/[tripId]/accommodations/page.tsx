@@ -19,7 +19,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { ToastContainer } from "@/components/ui/toast";
 import { useToast } from "@/hooks/useToast";
 import { useSidebarState } from "@/hooks/useSidebarState";
-import { Hotel, MapPin, Pencil, Trash2, Wallet, MoreVertical } from "lucide-react";
+import { Hotel, MapPin, Pencil, Trash2, Wallet, MoreVertical, BedDouble } from "lucide-react";
 
 interface AccommodationItem {
   id: string;
@@ -296,7 +296,8 @@ export default function AccommodationsPage() {
           <div className="max-w-6xl mx-auto">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
               <div>
-                <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter">
+                <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter flex items-center gap-3">
+                  <BedDouble className="w-8 h-8 md:w-10 md:h-10 shrink-0" />
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-cyan-500 to-emerald-500">
                     {t("accommodations.title")}
                   </span>

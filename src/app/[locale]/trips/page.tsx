@@ -231,7 +231,8 @@ export default function TripsPage() {
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-end gap-4 flex-wrap">
             <div>
-              <h1 className="text-4xl md:text-6xl font-black mb-2 tracking-tighter">
+              <h1 className="text-4xl md:text-6xl font-black mb-2 tracking-tighter flex items-center gap-3">
+                <Plane className="w-8 h-8 md:w-10 md:h-10 shrink-0" />
                 {t("trips.yourTrips").split(" ")[0]}{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-cyan-500 to-emerald-500">
                   {t("trips.yourTrips").split(" ")[1]}
