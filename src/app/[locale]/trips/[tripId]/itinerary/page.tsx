@@ -80,6 +80,7 @@ export default function ItineraryPage() {
   const [selectedItem, setSelectedItem] = useState<ItineraryItem | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [joiningItemId, setJoiningItemId] = useState<string | null>(null);
   const [openMenuItemId, setOpenMenuItemId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -259,6 +260,8 @@ export default function ItineraryPage() {
   }
 
   async function handleJoinToggle(item: ItineraryItem) {
+    if (joiningItemId === item.id) return;
+    setJoiningItemId(item.id);
     const isJoined = item.participants.some((p) => p.user.id === session?.user?.id);
     const method = isJoined ? "DELETE" : "POST";
 
@@ -266,16 +269,13 @@ export default function ItineraryPage() {
       prev.map((i) => {
         if (i.id !== item.id) return i;
         if (isJoined) {
-          return {
-            ...i,
-            participants: i.participants.filter((p) => p.user.id !== session?.user?.id),
-          };
+          return { ...i, participants: i.participants.filter((p) => p.user.id !== session?.user?.id) };
         } else {
           return {
             ...i,
             participants: [
               ...i.participants,
-              { user: { id: session!.user!.id, name: session!.user!.name ?? null, email: session!.user!.email! } },
+              { user: { id: session!.user!.id, name: session!.user!.name ?? null, email: session!.user!.email ?? "" } },
             ],
           };
         }
@@ -291,7 +291,7 @@ export default function ItineraryPage() {
           ...prev,
           participants: [
             ...prev.participants,
-            { user: { id: session!.user!.id, name: session!.user!.name ?? null, email: session!.user!.email! } },
+            { user: { id: session!.user!.id, name: session!.user!.name ?? null, email: session!.user!.email ?? "" } },
           ],
         };
       }
@@ -302,6 +302,8 @@ export default function ItineraryPage() {
       if (!res.ok) throw new Error("Failed");
     } catch {
       fetchItems();
+    } finally {
+      setJoiningItemId(null);
     }
   }
 
@@ -530,6 +532,7 @@ export default function ItineraryPage() {
                       <div className="flex items-center gap-3 text-sm text-gray-500">
                         <button
                           onClick={(e) => { e.stopPropagation(); handleJoinToggle(item); }}
+                          disabled={joiningItemId === item.id}
                           className={`flex items-center gap-1.5 px-3 py-1 border text-xs font-bold uppercase tracking-wider transition-colors ${
                             item.participants.some((p) => p.user.id === session?.user?.id)
                               ? "border-teal-500 bg-teal-500/10 text-teal-400"
@@ -995,6 +998,7 @@ export default function ItineraryPage() {
                 variant={selectedItem.participants.some((p) => p.user.id === session?.user?.id) ? "outline" : "gradient"}
                 className="flex-1"
                 onClick={() => handleJoinToggle(selectedItem)}
+                disabled={joiningItemId === selectedItem.id}
               >
                 {selectedItem.participants.some((p) => p.user.id === session?.user?.id)
                   ? t("itinerary.leave")
