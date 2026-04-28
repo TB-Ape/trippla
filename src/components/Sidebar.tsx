@@ -101,6 +101,15 @@ export function Sidebar({
     };
   }, [desktopOpen]);
 
+  useEffect(() => {
+    if (!mobileOpen) return;
+    function handleEscape(e: KeyboardEvent) {
+      if (e.key === "Escape") onMobileClose?.();
+    }
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [mobileOpen, onMobileClose]);
+
   function handleNavKeyDown(e: React.KeyboardEvent) {
     const links = Array.from(
       navRef.current?.querySelectorAll('[role="menuitem"]') ?? []

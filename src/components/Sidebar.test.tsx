@@ -126,4 +126,13 @@ describe("Sidebar", () => {
     fireEvent.click(backdrop!);
     expect(onClose).toHaveBeenCalledOnce();
   });
+
+  it("calls onMobileClose on Escape key when mobile is open", () => {
+    const onClose = vi.fn();
+    render(
+      <Sidebar items={ITEMS} current="overview" ariaLabel="Trip nav" mobileOpen={true} onMobileClose={onClose} />
+    );
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(onClose).toHaveBeenCalledOnce();
+  });
 });
