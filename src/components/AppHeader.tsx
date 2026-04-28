@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Settings as SettingsIcon } from "lucide-react";
+import { Settings as SettingsIcon, Menu } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { useTranslations, useLocale } from "next-intl";
 import { LocaleLink as Link } from "@/components/LocaleLink";
@@ -11,13 +11,12 @@ import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { KeyboardShortcutsHelp } from "@/components/KeyboardShortcutsHelp";
 
 interface AppHeaderProps {
-  /** When provided, renders back-link mode instead of user dropdown */
   backHref?: string;
-  /** Label for the back link. Defaults to ← Back */
   backLabel?: string;
+  onMobileMenuToggle?: () => void;
 }
 
-export function AppHeader({ backHref, backLabel }: AppHeaderProps) {
+export function AppHeader({ backHref, backLabel, onMobileMenuToggle }: AppHeaderProps) {
   const t = useTranslations();
   const { data: session } = useSession();
   const [open, setOpen] = useState(false);
@@ -56,13 +55,24 @@ export function AppHeader({ backHref, backLabel }: AppHeaderProps) {
   }, [open]);
 
   return (
-    <header className="border-b border-white/10 bg-[#0d0d0d] px-4 md:px-8 py-3 md:py-4">
-      <div className="flex justify-between items-center">
+    <header className="border-b border-white/10 bg-[#0d0d0d] px-4 md:px-8 h-14">
+      <div className="flex justify-between items-center h-full">
         {/* Logo */}
-        <Link href="/trips" className="flex items-center gap-2">
-          <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-teal-400 via-cyan-500 to-emerald-500 rounded-sm rotate-45" />
-          <span className="text-xl md:text-2xl font-bold tracking-tight">{t("common.appName")}</span>
-        </Link>
+        <div className="flex items-center">
+          {onMobileMenuToggle && (
+            <button
+              onClick={onMobileMenuToggle}
+              className="sm:hidden p-1 -ml-1 mr-2 hover:bg-white/5 transition-colors"
+              aria-label="Open menu"
+            >
+              <Menu size={20} className="text-gray-400" />
+            </button>
+          )}
+          <Link href="/trips" className="flex items-center gap-2">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-teal-400 via-cyan-500 to-emerald-500 rounded-sm rotate-45" />
+            <span className="text-xl md:text-2xl font-bold tracking-tight">{t("common.appName")}</span>
+          </Link>
+        </div>
 
         {/* Right side */}
         {backHref ? (
