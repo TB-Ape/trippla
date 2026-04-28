@@ -17,9 +17,6 @@ export async function getTripItinerary(tripId: string) {
         },
         orderBy: { joinedAt: "asc" },
       },
-      _count: {
-        select: { participants: true },
-      },
     },
     orderBy: {
       startTime: "asc",
