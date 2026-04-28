@@ -7,11 +7,18 @@ export async function getTripItinerary(tripId: string) {
     },
     include: {
       createdBy: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
+        select: { id: true, name: true, email: true },
+      },
+      participants: {
+        include: {
+          user: {
+            select: { id: true, name: true, email: true },
+          },
         },
+        orderBy: { joinedAt: "asc" },
+      },
+      _count: {
+        select: { participants: true },
       },
     },
     orderBy: {
