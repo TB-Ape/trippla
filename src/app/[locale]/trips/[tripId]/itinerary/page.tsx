@@ -549,6 +549,7 @@ export default function ItineraryPage() {
                             {item.cost.toLocaleString(locale, { style: "currency", currency: "EUR" })}
                           </span>
                         )}
+{/*
                         {item.category && (
                           <span className="px-2 py-1 bg-teal-500/10 border border-teal-500/30 text-teal-400 uppercase tracking-wider">
                             {CATEGORIES.find((c) => c.value === item.category)
@@ -557,7 +558,7 @@ export default function ItineraryPage() {
                         )}
                         <span>
                           {t("common.addedBy")} {item.createdBy.name || item.createdBy.email}
-                        </span>
+                        </span>*/}
                       </div>
                     </div>
                   </div>
